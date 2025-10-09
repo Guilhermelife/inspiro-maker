@@ -14,7 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorite_quotes: {
+        Row: {
+          author: string
+          category: string | null
+          created_at: string
+          id: string
+          quote_text: string
+          user_id: string | null
+        }
+        Insert: {
+          author: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          quote_text: string
+          user_id?: string | null
+        }
+        Update: {
+          author?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          quote_text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_quotes: {
+        Row: {
+          author: string
+          created_at: string
+          id: string
+          profile_photo_url: string | null
+          quote_text: string
+          user_id: string | null
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          id?: string
+          profile_photo_url?: string | null
+          quote_text: string
+          user_id?: string | null
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          id?: string
+          profile_photo_url?: string | null
+          quote_text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
