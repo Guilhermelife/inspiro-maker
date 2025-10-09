@@ -12,6 +12,7 @@ export type QuoteCategory =
   | "biblica"
   | "autor"
   | "amor"
+  | "motivacao-reversa"
   | "aleatoria";
 
 interface CategorySelectorProps {
@@ -26,6 +27,7 @@ const categories: { value: QuoteCategory; label: string }[] = [
   { value: "biblica", label: "Bíblica" },
   { value: "autor", label: "De Autor" },
   { value: "amor", label: "Amor & Espiritual" },
+  { value: "motivacao-reversa", label: "Motivação Reversa 🔥" },
 ];
 
 const CategorySelector = ({ value, onChange }: CategorySelectorProps) => {

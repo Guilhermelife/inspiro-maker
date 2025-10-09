@@ -14,6 +14,7 @@ const categoryPrompts: Record<string, string> = {
   biblica: "Gere uma citação bíblica inspiradora com o versículo.",
   autor: "Gere uma frase inspiradora de um autor famoso, filósofo ou pensador reconhecido.",
   amor: "Gere uma frase sobre amor, espiritualidade, compaixão ou gratidão.",
+  "motivacao-reversa": "Gere uma frase de motivação reversa, direta e provocativa. Use um tom firme, sem rodeios, que desafie a pessoa a agir imediatamente. Exemplo de estilo: 'Pare de reclamar e comece a fazer.' ou 'Ninguém vai fazer por você, levanta e vai.' A frase deve ser curta (máximo 200 caracteres), impactante e motivar através da realidade crua.",
   aleatoria: "Gere uma frase inspiradora sobre qualquer tema positivo.",
 };
 
@@ -42,7 +43,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'Você é um gerador de frases inspiradoras. Retorne APENAS um JSON válido com os campos "frase" e "autor". A frase deve ser curta (máximo 280 caracteres), original e inspiradora. Não inclua explicações adicionais.'
+            content: 'Você é um gerador de frases inspiradoras. Retorne APENAS um JSON válido com os campos "frase" e "autor". A frase deve ser curta (máximo 200 caracteres), original, autêntica e impactante. Para motivação reversa, use tom direto e provocativo. Não inclua explicações adicionais ou formatação markdown.'
           },
           {
             role: 'user',

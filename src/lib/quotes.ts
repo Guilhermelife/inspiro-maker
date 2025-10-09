@@ -66,6 +66,31 @@ export const localQuotes: Quote[] = [
     author: "Charlie Chaplin",
     category: "Motivacional"
   },
+  {
+    text: "Pare de reclamar da vida e comece a construí-la.",
+    author: "Anônimo",
+    category: "Motivação Reversa"
+  },
+  {
+    text: "Ninguém vai fazer por você. Levanta e age agora.",
+    author: "Anônimo",
+    category: "Motivação Reversa"
+  },
+  {
+    text: "Suas desculpas não vão te levar a lugar nenhum.",
+    author: "Anônimo",
+    category: "Motivação Reversa"
+  },
+  {
+    text: "Ou você faz acontecer, ou fica vendo os outros fazerem.",
+    author: "Anônimo",
+    category: "Motivação Reversa"
+  },
+  {
+    text: "Conforto não constrói caráter. Dificuldade sim.",
+    author: "Anônimo",
+    category: "Motivação Reversa"
+  },
 ];
 
 export const getRandomQuote = (excludeText?: string): Quote => {

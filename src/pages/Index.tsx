@@ -58,8 +58,8 @@ const Index = () => {
       });
 
       toast({
-        title: "Nova frase gerada!",
-        description: "Aproveite sua nova inspiração do dia.",
+        title: category === "motivacao-reversa" ? "💥 Motivação Reversa ativada!" : "Nova frase gerada!",
+        description: category === "motivacao-reversa" ? "Prepare-se para a realidade crua." : "Aproveite sua nova inspiração do dia.",
       });
     } catch (error) {
       console.error('Error generating quote:', error);
