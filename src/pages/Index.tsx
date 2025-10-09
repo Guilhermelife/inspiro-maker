@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +14,7 @@ import { getRandomQuote, type Quote } from "@/lib/quotes";
 import { generateQuoteImage } from "@/lib/imageGenerator";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentQuote, setCurrentQuote] = useState<Quote>(getRandomQuote());
   const [category, setCategory] = useState<QuoteCategory>("aleatoria");
   const [isFavorited, setIsFavorited] = useState(false);
@@ -206,16 +209,17 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
-      <header className="w-full py-6 px-4 border-b border-border">
+      <header className="w-full py-4 sm:py-6 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
         <div className="max-w-screen-lg mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-primary">Frases do Dia</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary">Frases do Dia</h1>
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full h-10 w-10"
-            onClick={() => window.location.href = '/favorites'}
+            className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+            onClick={() => navigate('/favorites')}
+            aria-label="Ver favoritos"
           >
             <Heart className="h-5 w-5" />
           </Button>
@@ -223,17 +227,27 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4 py-12 gap-8">
-        <div className="w-full max-w-screen-lg space-y-8">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 py-8 sm:py-12 gap-6 sm:gap-8">
+        <div className="w-full max-w-screen-lg space-y-6 sm:space-y-8">
           {/* Category Selector */}
           <CategorySelector value={category} onChange={setCategory} />
 
           {/* Quote Card */}
-          <QuoteCard
-            text={currentQuote.text}
-            author={currentQuote.author}
-            category={currentQuote.category}
-          />
+          {isGenerating ? (
+            <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 md:p-12">
+              <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
+                <Skeleton className="h-6 w-32 rounded-full" />
+                <Skeleton className="h-32 w-full max-w-xl" />
+                <Skeleton className="h-5 w-40" />
+              </div>
+            </div>
+          ) : (
+            <QuoteCard
+              text={currentQuote.text}
+              author={currentQuote.author}
+              category={currentQuote.category}
+            />
+          )}
 
           {/* Action Buttons */}
           <ActionButtons
@@ -245,14 +259,14 @@ const Index = () => {
           />
 
           {/* Create Quote Button */}
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center pt-2 sm:pt-4">
             <Button
-              variant="ghost"
-              className="gap-2 text-primary hover:text-primary hover:bg-primary/10"
+              variant="outline"
+              className="gap-2 h-11 px-6 border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 transition-all duration-200"
               onClick={() => setIsCreateModalOpen(true)}
             >
               <Plus className="h-5 w-5" />
-              Criar Minha Frase
+              <span className="font-medium">Criar Minha Frase</span>
             </Button>
           </div>
         </div>

@@ -32,12 +32,16 @@ const CategorySelector = ({ value, onChange }: CategorySelectorProps) => {
   return (
     <div className="w-full max-w-md mx-auto">
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-12 border-2 bg-background">
+        <SelectTrigger className="h-11 sm:h-12 border-2 bg-background hover:border-primary/50 transition-colors duration-200">
           <SelectValue placeholder="Selecione uma categoria" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-popover border-2">
           {categories.map((category) => (
-            <SelectItem key={category.value} value={category.value}>
+            <SelectItem 
+              key={category.value} 
+              value={category.value}
+              className="cursor-pointer"
+            >
               {category.label}
             </SelectItem>
           ))}

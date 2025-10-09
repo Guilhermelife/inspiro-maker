@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Trash2, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,6 +16,7 @@ interface FavoriteQuote {
 }
 
 const Favorites = () => {
+  const navigate = useNavigate();
   const [favorites, setFavorites] = useState<FavoriteQuote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -68,66 +71,84 @@ const Favorites = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
-      <header className="w-full py-6 px-4 border-b border-border">
-        <div className="max-w-screen-lg mx-auto flex items-center gap-4">
+      <header className="w-full py-4 sm:py-6 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
+        <div className="max-w-screen-lg mx-auto flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => window.location.href = '/'}
+            className="hover:bg-primary/10 active:scale-95 transition-all"
+            onClick={() => navigate('/')}
+            aria-label="Voltar"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold text-primary">Favoritos</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary">Minhas Favoritas</h1>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-screen-lg mx-auto p-4 py-8">
+      <main className="max-w-screen-lg mx-auto p-4 sm:p-6 py-6 sm:py-8">
         {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Carregando...</p>
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="p-6 rounded-lg bg-card border animate-pulse">
+                <Skeleton className="h-4 w-20 mb-4" />
+                <Skeleton className="h-24 w-full mb-4" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ))}
           </div>
         ) : favorites.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              Você ainda não tem frases favoritas.
+          <div className="flex flex-col items-center justify-center py-16 sm:py-24 text-center px-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+              <Heart className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+            </div>
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+              Nenhuma frase favorita ainda
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-6">
+              Favorite as frases que mais te inspiram para vê-las aqui a qualquer momento.
             </p>
             <Button
-              variant="link"
-              className="mt-4"
-              onClick={() => window.location.href = '/'}
+              variant="outline"
+              className="gap-2 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 transition-all"
+              onClick={() => navigate('/')}
             >
               Voltar para início
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {favorites.map((favorite) => (
-              <Card key={favorite.id} className="p-6 relative group">
+              <Card 
+                key={favorite.id} 
+                className="p-6 relative group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 animate-fade-in"
+              >
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-3 right-3 h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
                   onClick={() => handleDelete(favorite.id)}
+                  aria-label="Remover favorito"
                 >
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
                 
-                {favorite.category && (
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium block mb-3">
-                    {favorite.category}
-                  </span>
-                )}
-                
-                <blockquote className="text-lg font-medium leading-relaxed text-foreground mb-4">
-                  "{favorite.quote_text}"
-                </blockquote>
-                
-                <cite className="text-sm text-muted-foreground not-italic">
-                  — {favorite.author}
-                </cite>
+                <div className="space-y-3 sm:space-y-4 pr-8">
+                  {favorite.category && (
+                    <span className="text-xs tracking-wide text-muted-foreground font-medium px-2 py-1 rounded-full bg-secondary/50 inline-block">
+                      {favorite.category}
+                    </span>
+                  )}
+                  <blockquote className="text-base sm:text-lg font-medium text-foreground" style={{ lineHeight: '1.6' }}>
+                    "{favorite.quote_text}"
+                  </blockquote>
+                  <cite className="text-sm text-muted-foreground not-italic font-medium">
+                    — {favorite.author}
+                  </cite>
+                </div>
               </Card>
             ))}
           </div>

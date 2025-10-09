@@ -39,9 +39,14 @@ All colors MUST be HSL.
     --radius: 1rem;
     
     /* Custom design tokens */
-    --shadow-soft: 0 2px 20px rgba(47, 128, 237, 0.08);
-    --shadow-medium: 0 4px 30px rgba(47, 128, 237, 0.12);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.04);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --shadow-elegant: 0 10px 40px rgba(47, 128, 237, 0.06);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Gradients */
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 100%);
 
     --sidebar-background: 0 0% 98%;
 
@@ -109,11 +114,15 @@ All colors MUST be HSL.
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.4s ease-out;
   }
   
   .animate-scale-in {
     animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   @keyframes fadeIn {
@@ -135,6 +144,17 @@ All colors MUST be HSL.
     to {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }
