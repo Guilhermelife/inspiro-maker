@@ -13,6 +13,8 @@ import CreateQuoteModal from "@/components/CreateQuoteModal";
 import { getRandomQuote, type Quote } from "@/lib/quotes";
 import { generateQuoteImage } from "@/lib/imageGenerator";
 import logo from "@/assets/logo.png";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -212,7 +214,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
-      <header className="w-full py-4 sm:py-6 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
+      <header className="w-full py-4 sm:py-6 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20 safe-top">
         <div className="max-w-screen-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <img 
@@ -291,6 +293,10 @@ const Index = () => {
         onOpenChange={setIsCreateModalOpen}
         onCreateQuote={handleCreateQuote}
       />
+      
+      {/* PWA Components */}
+      <InstallPrompt />
+      <UpdatePrompt />
     </div>
   );
 };

@@ -103,6 +103,9 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-sans;
+    /* Safe area insets para iOS notch/home indicator */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -156,5 +159,14 @@ All colors MUST be HSL.
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  /* Classe utilitária para safe areas */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
