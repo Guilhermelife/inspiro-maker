@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
       manifest: false, // usaremos nosso manifest.json customizado
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: null,
+        navigateFallback: '/offline.html',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
