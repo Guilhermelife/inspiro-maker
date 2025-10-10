@@ -121,9 +121,9 @@ const Favorites = () => {
         <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              className="hover:bg-primary/10 active:scale-95 transition-all"
+              className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
               onClick={() => navigate('/')}
               aria-label="Voltar"
             >
