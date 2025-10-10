@@ -215,8 +215,8 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
-      <header className="w-full py-4 sm:py-6 px-3 sm:px-4 md:px-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20 safe-top">
-        <div className="max-w-screen-lg mx-auto flex items-center justify-between px-2 sm:px-0">
+      <header className="w-full py-4 sm:py-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20 safe-top">
+        <div className="max-w-screen-lg mx-auto flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2 sm:gap-3">
             <img 
               src={logo} 
