@@ -12,6 +12,7 @@ import AdBanner from "@/components/AdBanner";
 import CreateQuoteModal from "@/components/CreateQuoteModal";
 import { getRandomQuote, type Quote } from "@/lib/quotes";
 import { generateQuoteImage } from "@/lib/imageGenerator";
+import logo from "@/assets/logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -213,7 +214,16 @@ const Index = () => {
       {/* Header */}
       <header className="w-full py-4 sm:py-6 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
         <div className="max-w-screen-lg mx-auto flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold text-primary">Frases do Dia</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img 
+              src={logo} 
+              alt="Frases do Dia" 
+              className="h-8 sm:h-10 w-auto"
+            />
+            <h1 className="text-xl sm:text-2xl font-bold text-primary hidden xs:block">
+              Frases do Dia
+            </h1>
+          </div>
           <Button
             variant="outline"
             size="icon"
