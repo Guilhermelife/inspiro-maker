@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.6c2ef112f2c34330b6b3938307e15460',
+  appId: 'br.com.frasesdodia.motivacional',
   appName: 'Frases do Dia',
   webDir: 'dist',
   server: {
