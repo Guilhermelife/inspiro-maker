@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Trash2, Heart } from "lucide-react";
+import { ArrowLeft, Trash2, Heart, Share2 } from "lucide-react";
+import { generateQuoteImage } from "@/lib/imageGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -70,6 +71,48 @@ const Favorites = () => {
     }
   };
 
+  const handleShare = async (favorite: FavoriteQuote) => {
+    try {
+      const imageUrl = await generateQuoteImage({
+        text: favorite.quote_text,
+        author: favorite.author,
+      });
+
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'frase-favorita.png', { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Frase do Dia',
+          text: `"${favorite.quote_text}" — ${favorite.author}`,
+          files: [file],
+        });
+        
+        toast({
+          title: "Compartilhado com sucesso!",
+        });
+      } else {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = 'frase-favorita.png';
+        link.click();
+        
+        toast({
+          title: "Imagem baixada!",
+          description: "Compartilhe manualmente nas suas redes sociais.",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: "Erro ao compartilhar",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
@@ -126,15 +169,27 @@ const Favorites = () => {
                 key={favorite.id} 
                 className="p-6 relative group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 animate-fade-in"
               >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-3 right-3 h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
-                  onClick={() => handleDelete(favorite.id)}
-                  aria-label="Remover favorito"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+                    onClick={() => handleShare(favorite)}
+                    aria-label="Compartilhar frase"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
+                    onClick={() => handleDelete(favorite.id)}
+                    aria-label="Remover favorito"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
                 
                 <div className="space-y-3 sm:space-y-4 pr-8">
                   {favorite.category && (
