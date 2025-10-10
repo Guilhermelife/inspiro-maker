@@ -116,27 +116,33 @@ const Favorites = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--gradient-subtle)' }}>
-      {/* Header */}
-      <header className="w-full py-4 sm:py-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:px-6">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
-              onClick={() => navigate('/')}
-              aria-label="Voltar"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl sm:text-2xl font-bold text-primary">Minhas Favoritas</h1>
-          </div>
+      {/* Floating Back Button - Top Left */}
+      <div className="fixed top-0 left-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pl-[max(1rem,env(safe-area-inset-left))]">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full h-10 w-10 backdrop-blur-md bg-background/60 border border-border/50 shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+          onClick={() => navigate('/')}
+          aria-label="Voltar"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Floating Theme Toggle - Top Right */}
+      <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
+        <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
           <ThemeToggle />
         </div>
-      </header>
+      </div>
+
+      {/* Page Title - Centered below floating buttons */}
+      <div className="pt-20 pb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Minhas Favoritas</h1>
+      </div>
 
       {/* Content */}
-      <main className="max-w-screen-lg mx-auto p-4 sm:p-6 py-6 sm:py-8">
+      <main className="max-w-screen-lg mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
         {isLoading ? (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (

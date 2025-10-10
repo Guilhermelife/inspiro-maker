@@ -214,36 +214,37 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-subtle)' }}>
-      {/* Header */}
-      <header className="w-full py-4 sm:py-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20 safe-top">
-        <div className="max-w-screen-lg mx-auto flex items-center justify-between pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:px-6">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <img 
-              src={logo} 
-              alt="Frases do Dia" 
-              className="h-8 sm:h-10 w-auto flex-shrink-0"
-            />
-            <h1 className="text-xl sm:text-2xl font-bold text-primary hidden xs:block truncate">
-              Frases do Dia
-            </h1>
-          </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
-              onClick={() => navigate('/favorites')}
-              aria-label="Ver favoritos"
-            >
-              <Heart className="h-5 w-5" />
-            </Button>
+      {/* Floating Logo - Top Left */}
+      <div className="fixed top-0 left-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pl-[max(1rem,env(safe-area-inset-left))]">
+        <div className="backdrop-blur-md bg-background/60 rounded-full p-2 shadow-lg border border-border/50">
+          <img 
+            src={logo} 
+            alt="Frases do Dia" 
+            className="h-8 w-auto"
+          />
+        </div>
+      </div>
+
+      {/* Floating Actions - Top Right */}
+      <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-10 w-10 backdrop-blur-md bg-background/60 border border-border/50 shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+            onClick={() => navigate('/favorites')}
+            aria-label="Ver favoritos"
+          >
+            <Heart className="h-5 w-5" />
+          </Button>
+          <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
             <ThemeToggle />
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 py-8 sm:py-12 gap-6 sm:gap-8">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 pt-20 sm:pt-24 pb-8 sm:pb-12 gap-6 sm:gap-8">
         <div className="w-full max-w-screen-lg space-y-6 sm:space-y-8">
           {/* Category Selector */}
           <CategorySelector value={category} onChange={setCategory} />
