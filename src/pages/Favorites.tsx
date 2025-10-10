@@ -118,7 +118,7 @@ const Favorites = () => {
     <div className="min-h-screen" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
       <header className="w-full py-4 sm:py-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:px-6">
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
