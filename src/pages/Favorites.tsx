@@ -7,6 +7,7 @@ import { ArrowLeft, Trash2, Heart, Share2 } from "lucide-react";
 import { generateQuoteImage } from "@/lib/imageGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface FavoriteQuote {
   id: string;
@@ -117,17 +118,20 @@ const Favorites = () => {
     <div className="min-h-screen" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Header */}
       <header className="w-full py-4 sm:py-6 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-screen-lg mx-auto flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-primary/10 active:scale-95 transition-all"
-            onClick={() => navigate('/')}
-            aria-label="Voltar"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl sm:text-2xl font-bold text-primary">Minhas Favoritas</h1>
+        <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-primary/10 active:scale-95 transition-all"
+              onClick={() => navigate('/')}
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl sm:text-2xl font-bold text-primary">Minhas Favoritas</h1>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 

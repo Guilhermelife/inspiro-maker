@@ -93,6 +93,10 @@ All colors MUST be HSL.
     --border: 220 20% 20%;
     --input: 220 20% 20%;
     --ring: 217 91% 60%;
+    
+    /* Dark mode custom tokens */
+    --gradient-subtle: linear-gradient(180deg, hsl(220 20% 10%) 0%, hsl(220 20% 12%) 100%);
+    --shadow-elegant: 0 10px 40px rgba(47, 128, 237, 0.15);
   }
 }
 

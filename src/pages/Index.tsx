@@ -15,6 +15,7 @@ import { generateQuoteImage } from "@/lib/imageGenerator";
 import logo from "@/assets/logo.png";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -226,15 +227,18 @@ const Index = () => {
               Frases do Dia
             </h1>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
-            onClick={() => navigate('/favorites')}
-            aria-label="Ver favoritos"
-          >
-            <Heart className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+              onClick={() => navigate('/favorites')}
+              aria-label="Ver favoritos"
+            >
+              <Heart className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
