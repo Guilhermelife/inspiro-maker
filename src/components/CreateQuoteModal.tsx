@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 
 interface CreateQuoteModalProps {
   open: boolean;
@@ -86,14 +87,11 @@ const CreateQuoteModal = ({ open, onOpenChange, onCreateQuote }: CreateQuoteModa
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="photo-url" className="text-sm font-medium">URL da Foto de Perfil (opcional)</Label>
-            <Input
-              id="photo-url"
-              type="url"
-              placeholder="https://exemplo.com/foto.jpg"
+            <Label className="text-sm font-medium">Foto de Perfil (opcional)</Label>
+            <ImageUpload
               value={photoUrl}
-              onChange={(e) => setPhotoUrl(e.target.value)}
-              className="text-sm focus:ring-2 focus:ring-primary transition-all"
+              onChange={setPhotoUrl}
+              disabled={isCreating}
             />
           </div>
           
