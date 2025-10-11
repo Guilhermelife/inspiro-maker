@@ -12,6 +12,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { z } from "zod";
+
+const quoteSchema = z.object({
+  text: z.string()
+    .trim()
+    .min(10, "A frase deve ter pelo menos 10 caracteres")
+    .max(280, "A frase não pode ter mais de 280 caracteres")
+    .refine(val => !/<script|javascript:/i.test(val), "Conteúdo suspeito detectado"),
+  author: z.string()
+    .trim()
+    .min(2, "O nome deve ter pelo menos 2 caracteres")
+    .max(50, "O nome não pode ter mais de 50 caracteres"),
+  photoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+});
 
 interface CreateQuoteModalProps {
   open: boolean;
@@ -29,9 +43,22 @@ const CreateQuoteModal = ({ open, onOpenChange, onCreateQuote }: CreateQuoteModa
     e.preventDefault();
     if (!quoteText.trim() || !author.trim()) return;
 
+    // Client-side validation
+    const validationResult = quoteSchema.safeParse({
+      text: quoteText,
+      author: author,
+      photoUrl: photoUrl,
+    });
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      alert(firstError.message);
+      return;
+    }
+
     setIsCreating(true);
     try {
-      await onCreateQuote(quoteText, author, photoUrl || undefined);
+      await onCreateQuote(quoteText.trim(), author.trim(), photoUrl || undefined);
       setQuoteText("");
       setAuthor("");
       setPhotoUrl("");

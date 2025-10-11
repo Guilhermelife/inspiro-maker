@@ -21,7 +21,7 @@ export type Database = {
           created_at: string
           id: string
           quote_text: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           author: string
@@ -29,7 +29,7 @@ export type Database = {
           created_at?: string
           id?: string
           quote_text: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           author?: string
@@ -37,7 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           quote_text?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -72,7 +72,7 @@ export type Database = {
           id: string
           profile_photo_url: string | null
           quote_text: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           author: string
@@ -80,7 +80,7 @@ export type Database = {
           id?: string
           profile_photo_url?: string | null
           quote_text: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           author?: string
@@ -88,7 +88,7 @@ export type Database = {
           id?: string
           profile_photo_url?: string | null
           quote_text?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

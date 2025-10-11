@@ -16,6 +16,9 @@ const categoryPrompts: Record<string, string> = {
   amor: "Gere uma frase sobre amor, espiritualidade, compaixão ou gratidão.",
   "motivacao-reversa": "Gere uma frase de motivação reversa, direta e provocativa. Use um tom firme, sem rodeios, que desafie a pessoa a agir imediatamente. Exemplo de estilo: 'Pare de reclamar e comece a fazer.' ou 'Ninguém vai fazer por você, levanta e vai.' A frase deve ser curta (máximo 200 caracteres), impactante e motivar através da realidade crua.",
   aleatoria: "Gere uma frase inspiradora sobre qualquer tema positivo.",
+  motivacao: "Gere uma frase motivacional inspiradora e original que encoraje as pessoas a persistirem e acreditarem em si mesmas.",
+  inspiracao: "Gere uma frase inspiradora sobre qualquer tema positivo.",
+  sabedoria: "Gere uma frase reflexiva profunda sobre a vida, sabedoria ou autoconhecimento.",
 };
 
 serve(async (req) => {
@@ -24,7 +27,16 @@ serve(async (req) => {
   }
 
   try {
-    const { category, excludeTexts = [] } = await req.json();
+    const { category = "aleatoria", excludeTexts = [] } = await req.json();
+    
+    // Validate category input
+    const validCategories = Object.keys(categoryPrompts);
+    if (!validCategories.includes(category)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid category parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');

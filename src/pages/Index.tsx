@@ -17,6 +17,20 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useQuoteHistory } from "@/hooks/useQuoteHistory";
+import { z } from "zod";
+
+const quoteInputSchema = z.object({
+  quote_text: z.string()
+    .trim()
+    .min(10, "Frase muito curta (mínimo 10 caracteres)")
+    .max(280, "Frase muito longa (máximo 280 caracteres)")
+    .refine(val => !/<script|javascript:/i.test(val), "Conteúdo inválido detectado"),
+  author: z.string()
+    .trim()
+    .min(2, "Nome do autor muito curto")
+    .max(50, "Nome do autor muito longo"),
+  profile_photo_url: z.string().url().optional().or(z.literal("")),
+});
 
 const Index = () => {
   const navigate = useNavigate();
@@ -48,10 +62,17 @@ const Index = () => {
     if (!currentQuote) return;
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsFavorited(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('favorite_quotes')
         .select('id')
         .eq('quote_text', currentQuote.text)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -100,11 +121,23 @@ const Index = () => {
 
   const handleFavorite = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Login necessário",
+          description: "Você precisa estar logado para salvar favoritos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (isFavorited) {
         const { error } = await supabase
           .from('favorite_quotes')
           .delete()
-          .eq('quote_text', currentQuote.text);
+          .eq('quote_text', currentQuote!.text)
+          .eq('user_id', user.id);
 
         if (error) throw error;
 
@@ -117,9 +150,10 @@ const Index = () => {
         const { error } = await supabase
           .from('favorite_quotes')
           .insert({
-            quote_text: currentQuote.text,
-            author: currentQuote.author,
-            category: currentQuote.category,
+            quote_text: currentQuote!.text,
+            author: currentQuote!.author,
+            category: currentQuote!.category,
+            user_id: user.id,
           });
 
         if (error) throw error;
@@ -143,8 +177,8 @@ const Index = () => {
   const handleShare = async () => {
     try {
       const imageUrl = await generateQuoteImage({
-        text: currentQuote.text,
-        author: currentQuote.author,
+        text: currentQuote!.text,
+        author: currentQuote!.author,
       });
 
       // Convert data URL to blob
@@ -155,7 +189,7 @@ const Index = () => {
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: 'Frase do Dia',
-          text: `"${currentQuote.text}" — ${currentQuote.author}`,
+          text: `"${currentQuote!.text}" — ${currentQuote!.author}`,
           files: [file],
         });
         
@@ -186,12 +220,41 @@ const Index = () => {
 
   const handleCreateQuote = async (text: string, author: string, photoUrl?: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Login necessário",
+          description: "Você precisa estar logado para criar frases.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate inputs
+      const validationResult = quoteInputSchema.safeParse({
+        quote_text: text,
+        author: author,
+        profile_photo_url: photoUrl || "",
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: "Entrada inválida",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('user_quotes')
         .insert({
           quote_text: text,
           author: author,
-          profile_photo_url: photoUrl,
+          profile_photo_url: photoUrl || null,
+          user_id: user.id,
         });
 
       if (error) throw error;
