@@ -16,6 +16,7 @@ import logo from "@/assets/logo.png";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useQuoteHistory } from "@/hooks/useQuoteHistory";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -25,12 +26,14 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { toast } = useToast();
+  const { history, addToHistory } = useQuoteHistory();
 
   // Load initial quote
   useEffect(() => {
     const loadInitialQuote = async () => {
-      const quote = await getRandomQuote();
+      const quote = await getRandomQuote(history);
       setCurrentQuote(quote);
+      addToHistory(quote.text);
     };
     loadInitialQuote();
   }, []);
@@ -62,17 +65,23 @@ const Index = () => {
     setIsGenerating(true);
     try {
       const response = await supabase.functions.invoke('generate-quote', {
-        body: { category }
+        body: { 
+          category,
+          excludeTexts: history 
+        }
       });
 
       if (response.error) throw response.error;
 
       const data = response.data;
-      setCurrentQuote({
+      const newQuote = {
         text: data.frase,
         author: data.autor,
         category: category === "aleatoria" ? "Inspiracional" : category.charAt(0).toUpperCase() + category.slice(1)
-      });
+      };
+      
+      setCurrentQuote(newQuote);
+      addToHistory(newQuote.text);
 
       toast({
         title: category === "motivacao-reversa" ? "💥 Motivação Reversa ativada!" : "Nova frase gerada!",
@@ -81,8 +90,9 @@ const Index = () => {
     } catch (error) {
       console.error('Error generating quote:', error);
       // Fallback to local quote
-      const localQuote = await getRandomQuote(currentQuote?.text);
+      const localQuote = await getRandomQuote(history);
       setCurrentQuote(localQuote);
+      addToHistory(localQuote.text);
     } finally {
       setIsGenerating(false);
     }

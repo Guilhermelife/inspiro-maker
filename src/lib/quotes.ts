@@ -135,28 +135,38 @@ const getAllQuotes = async (): Promise<Quote[]> => {
   return [...dbQuotes, ...localQuotes];
 };
 
-export const getRandomQuote = async (excludeText?: string): Promise<Quote> => {
+export const getRandomQuote = async (excludeTexts: string[] = []): Promise<Quote> => {
   const allQuotes = await getAllQuotes();
-  const availableQuotes = excludeText
-    ? allQuotes.filter(q => q.text !== excludeText)
-    : allQuotes;
+  
+  let availableQuotes = allQuotes;
+  if (excludeTexts.length > 0) {
+    availableQuotes = allQuotes.filter(q => !excludeTexts.includes(q.text));
+  }
+  
+  if (availableQuotes.length === 0) {
+    availableQuotes = allQuotes;
+  }
   
   const randomIndex = Math.floor(Math.random() * availableQuotes.length);
   return availableQuotes[randomIndex];
 };
 
-export const getQuoteByCategory = async (category: string, excludeText?: string): Promise<Quote> => {
+export const getQuoteByCategory = async (category: string, excludeTexts: string[] = []): Promise<Quote> => {
   if (category === "aleatoria") {
-    return getRandomQuote(excludeText);
+    return getRandomQuote(excludeTexts);
   }
   
   const allQuotes = await getAllQuotes();
-  const categoryQuotes = allQuotes.filter(
-    q => q.category.toLowerCase() === category.toLowerCase() && q.text !== excludeText
+  let categoryQuotes = allQuotes.filter(
+    q => q.category.toLowerCase() === category.toLowerCase()
   );
   
+  if (excludeTexts.length > 0) {
+    categoryQuotes = categoryQuotes.filter(q => !excludeTexts.includes(q.text));
+  }
+  
   if (categoryQuotes.length === 0) {
-    return getRandomQuote(excludeText);
+    return getRandomQuote(excludeTexts);
   }
   
   const randomIndex = Math.floor(Math.random() * categoryQuotes.length);

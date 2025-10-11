@@ -24,65 +24,83 @@ serve(async (req) => {
   }
 
   try {
-    const { category } = await req.json();
+    const { category, excludeTexts = [] } = await req.json();
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    console.log('Generating quote for category:', category, 'excluding:', excludeTexts.length, 'quotes');
+
     const prompt = categoryPrompts[category] || categoryPrompts.aleatoria;
+    const maxAttempts = 3;
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'Você é um gerador de frases inspiradoras. Retorne APENAS um JSON válido com os campos "frase" e "autor". A frase deve ser curta (máximo 200 caracteres), original, autêntica e impactante. Para motivação reversa, use tom direto e provocativo. Não inclua explicações adicionais ou formatação markdown.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.8,
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`Attempt ${attempt}/${maxAttempts}`);
+      
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um gerador de frases inspiradoras. Retorne APENAS um JSON válido com os campos "frase" e "autor". A frase deve ser curta (máximo 200 caracteres), original, autêntica e impactante. Para motivação reversa, use tom direto e provocativo. Não inclua explicações adicionais ou formatação markdown. IMPORTANTE: Gere uma frase completamente diferente das anteriores.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.9,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('AI gateway error:', response.status, errorText);
+        throw new Error(`AI gateway error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      // Parse JSON from response
+      let quoteData;
+      try {
+        // Try to extract JSON from markdown code blocks if present
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
+                         content.match(/```\s*([\s\S]*?)\s*```/);
+        const jsonStr = jsonMatch ? jsonMatch[1] : content;
+        quoteData = JSON.parse(jsonStr);
+        
+        // Check if quote is in excluded list
+        if (!excludeTexts.includes(quoteData.frase)) {
+          console.log('Generated unique quote on attempt', attempt);
+          return new Response(JSON.stringify(quoteData), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        console.log('Quote was in history, trying again...');
+      } catch (parseError) {
+        console.error('Error parsing AI response:', content);
+      }
+    }
+    
+    // If all attempts failed, return fallback
+    console.log('All attempts exhausted, returning fallback');
+    return new Response(
+      JSON.stringify({ 
+        frase: "A persistência é o caminho do êxito.",
+        autor: "Charlie Chaplin"
       }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    // Parse JSON from response
-    let quoteData;
-    try {
-      // Try to extract JSON from markdown code blocks if present
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
-                       content.match(/```\s*([\s\S]*?)\s*```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : content;
-      quoteData = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('Error parsing AI response:', content);
-      // Fallback response
-      quoteData = {
-        frase: "Acredite em si mesmo e tudo será possível.",
-        autor: "Anônimo"
-      };
-    }
-
-    return new Response(JSON.stringify(quoteData), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error in generate-quote function:', error);
     return new Response(
