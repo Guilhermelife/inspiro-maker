@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "next-themes";
 import { Moon, Sun, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const from = (location.state as any)?.from || "/";
 
@@ -17,22 +19,38 @@ const Auth = () => {
     // Check if user is already logged in
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        navigate(from, { replace: true });
+        // Check if there's a stored redirect path
+        const storedPath = sessionStorage.getItem('auth_redirect_path');
+        if (storedPath) {
+          sessionStorage.removeItem('auth_redirect_path');
+          navigate(storedPath, { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     });
   }, [navigate, from]);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    
+    // Store the redirect path in sessionStorage
+    sessionStorage.setItem('auth_redirect_path', from);
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${from}`
+        redirectTo: window.location.origin
       }
     });
     
     if (error) {
       console.error('Error logging in:', error.message);
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message || "Não foi possível conectar com o Google. Tente novamente.",
+        variant: "destructive"
+      });
       setLoading(false);
     }
   };
