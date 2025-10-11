@@ -19,18 +19,31 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [currentQuote, setCurrentQuote] = useState<Quote>(getRandomQuote());
+  const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [category, setCategory] = useState<QuoteCategory>("aleatoria");
   const [isFavorited, setIsFavorited] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { toast } = useToast();
 
+  // Load initial quote
   useEffect(() => {
-    checkIfFavorited();
+    const loadInitialQuote = async () => {
+      const quote = await getRandomQuote();
+      setCurrentQuote(quote);
+    };
+    loadInitialQuote();
+  }, []);
+
+  useEffect(() => {
+    if (currentQuote) {
+      checkIfFavorited();
+    }
   }, [currentQuote]);
 
   const checkIfFavorited = async () => {
+    if (!currentQuote) return;
+    
     try {
       const { data, error } = await supabase
         .from('favorite_quotes')
@@ -68,7 +81,7 @@ const Index = () => {
     } catch (error) {
       console.error('Error generating quote:', error);
       // Fallback to local quote
-      const localQuote = getRandomQuote(currentQuote.text);
+      const localQuote = await getRandomQuote(currentQuote?.text);
       setCurrentQuote(localQuote);
     } finally {
       setIsGenerating(false);
@@ -250,7 +263,7 @@ const Index = () => {
           <CategorySelector value={category} onChange={setCategory} />
 
           {/* Quote Card */}
-          {isGenerating ? (
+          {isGenerating || !currentQuote ? (
             <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 md:p-12">
               <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
                 <Skeleton className="h-6 w-32 rounded-full" />

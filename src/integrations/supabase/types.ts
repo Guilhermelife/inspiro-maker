@@ -41,6 +41,30 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          author: string
+          category: string
+          created_at: string | null
+          id: string
+          text: string
+        }
+        Insert: {
+          author: string
+          category: string
+          created_at?: string | null
+          id?: string
+          text: string
+        }
+        Update: {
+          author?: string
+          category?: string
+          created_at?: string | null
+          id?: string
+          text?: string
+        }
+        Relationships: []
+      }
       user_quotes: {
         Row: {
           author: string

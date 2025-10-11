@@ -2,3 +2,6 @@ project_id = "yezvkzscytyfazudfklf"
 
 [functions.generate-quote]
 verify_jwt = false
+
+[functions.daily-quote-update]
+verify_jwt = false

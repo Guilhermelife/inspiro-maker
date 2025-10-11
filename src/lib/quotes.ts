@@ -1,8 +1,15 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface Quote {
   text: string;
   author: string;
   category: string;
 }
+
+// Cache de frases do banco
+let databaseQuotesCache: Quote[] = [];
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
 // Banco local de frases para fallback
 export const localQuotes: Quote[] = [
@@ -93,21 +100,58 @@ export const localQuotes: Quote[] = [
   },
 ];
 
-export const getRandomQuote = (excludeText?: string): Quote => {
+// Buscar frases do banco de dados
+export const fetchDatabaseQuotes = async (): Promise<Quote[]> => {
+  const now = Date.now();
+  
+  // Usar cache se ainda válido
+  if (databaseQuotesCache.length > 0 && (now - lastFetchTime) < CACHE_DURATION) {
+    return databaseQuotesCache;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('quotes')
+      .select('text, author, category')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching database quotes:', error);
+      return [];
+    }
+
+    databaseQuotesCache = data || [];
+    lastFetchTime = now;
+    return databaseQuotesCache;
+  } catch (error) {
+    console.error('Error in fetchDatabaseQuotes:', error);
+    return [];
+  }
+};
+
+// Combinar frases do banco com frases locais
+const getAllQuotes = async (): Promise<Quote[]> => {
+  const dbQuotes = await fetchDatabaseQuotes();
+  return [...dbQuotes, ...localQuotes];
+};
+
+export const getRandomQuote = async (excludeText?: string): Promise<Quote> => {
+  const allQuotes = await getAllQuotes();
   const availableQuotes = excludeText
-    ? localQuotes.filter(q => q.text !== excludeText)
-    : localQuotes;
+    ? allQuotes.filter(q => q.text !== excludeText)
+    : allQuotes;
   
   const randomIndex = Math.floor(Math.random() * availableQuotes.length);
   return availableQuotes[randomIndex];
 };
 
-export const getQuoteByCategory = (category: string, excludeText?: string): Quote => {
+export const getQuoteByCategory = async (category: string, excludeText?: string): Promise<Quote> => {
   if (category === "aleatoria") {
     return getRandomQuote(excludeText);
   }
   
-  const categoryQuotes = localQuotes.filter(
+  const allQuotes = await getAllQuotes();
+  const categoryQuotes = allQuotes.filter(
     q => q.category.toLowerCase() === category.toLowerCase() && q.text !== excludeText
   );
   
