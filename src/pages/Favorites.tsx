@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Trash2, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, Trash2, Heart, Share2, LogOut } from "lucide-react";
 import { generateQuoteImage } from "@/lib/imageGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface FavoriteQuote {
   id: string;
@@ -19,19 +22,34 @@ interface FavoriteQuote {
 
 const Favorites = () => {
   const navigate = useNavigate();
+  const { user, signOut, loading } = useAuth();
   const [favorites, setFavorites] = useState<FavoriteQuote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadFavorites();
-  }, []);
+    if (!loading && !user) {
+      navigate("/auth", { state: { from: "/favorites" } });
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      loadFavorites();
+    }
+  }, [user]);
 
   const loadFavorites = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('favorite_quotes')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -46,6 +64,15 @@ const Favorites = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logout realizado",
+      description: "Até logo!",
+    });
+    navigate("/");
   };
 
   const handleDelete = async (id: string) => {
@@ -129,10 +156,39 @@ const Favorites = () => {
         </Button>
       </div>
 
-      {/* Floating Theme Toggle - Top Right */}
+      {/* Floating Actions - Top Right */}
       <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
-        <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
-          <ThemeToggle />
+        <div className="flex items-center gap-2">
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="focus:outline-none">
+                  <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all backdrop-blur-md shadow-lg border border-border/50">
+                    <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || user.email} />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-card backdrop-blur-md">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{user.user_metadata?.full_name || "Usuário"}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 

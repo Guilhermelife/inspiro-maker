@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Plus } from "lucide-react";
+import { Heart, Plus, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import QuoteCard from "@/components/QuoteCard";
 import ActionButtons from "@/components/ActionButtons";
 import CategorySelector, { QuoteCategory } from "@/components/CategorySelector";
@@ -17,6 +18,8 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useQuoteHistory } from "@/hooks/useQuoteHistory";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { z } from "zod";
 
 const quoteInputSchema = z.object({
@@ -34,6 +37,7 @@ const quoteInputSchema = z.object({
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [category, setCategory] = useState<QuoteCategory>("aleatoria");
   const [isFavorited, setIsFavorited] = useState(false);
@@ -59,15 +63,12 @@ const Index = () => {
   }, [currentQuote]);
 
   const checkIfFavorited = async () => {
-    if (!currentQuote) return;
+    if (!currentQuote || !user) {
+      setIsFavorited(false);
+      return;
+    }
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsFavorited(false);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('favorite_quotes')
         .select('id')
@@ -120,18 +121,12 @@ const Index = () => {
   };
 
   const handleFavorite = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Login necessário",
-          description: "Você precisa estar logado para salvar favoritos.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!user) {
+      navigate("/auth", { state: { from: "/" } });
+      return;
+    }
 
+    try {
       if (isFavorited) {
         const { error } = await supabase
           .from('favorite_quotes')
@@ -219,18 +214,13 @@ const Index = () => {
   };
 
   const handleCreateQuote = async (text: string, author: string, photoUrl?: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Login necessário",
-          description: "Você precisa estar logado para criar frases.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!user) {
+      setIsCreateModalOpen(false);
+      navigate("/auth", { state: { from: "/" } });
+      return;
+    }
 
+    try {
       // Validate inputs
       const validationResult = quoteInputSchema.safeParse({
         quote_text: text,
@@ -298,6 +288,14 @@ const Index = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logout realizado",
+      description: "Até logo!",
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-subtle)' }}>
       {/* Floating Logo - Top Left */}
@@ -314,15 +312,53 @@ const Index = () => {
       {/* Floating Actions - Top Right */}
       <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-10 w-10 backdrop-blur-md bg-background/60 border border-border/50 shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
-            onClick={() => navigate('/favorites')}
-            aria-label="Ver favoritos"
-          >
-            <Heart className="h-5 w-5" />
-          </Button>
+          {user ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-10 w-10 backdrop-blur-md bg-background/60 border border-border/50 shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+                onClick={() => navigate('/favorites')}
+                aria-label="Ver favoritos"
+              >
+                <Heart className="h-5 w-5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="focus:outline-none">
+                    <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all backdrop-blur-md shadow-lg border border-border/50">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || user.email} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-card backdrop-blur-md">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{user.user_metadata?.full_name || "Usuário"}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-10 backdrop-blur-md shadow-lg border border-border/50"
+              onClick={() => navigate('/auth')}
+            >
+              Entrar
+            </Button>
+          )}
           <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
             <ThemeToggle />
           </div>
