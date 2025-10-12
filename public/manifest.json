@@ -1,14 +1,18 @@
 {
+  "id": "/",
   "name": "Frases do Dia – Motivacionais & Reflexivas",
   "short_name": "Frases do Dia",
   "description": "Inspire-se diariamente com frases motivacionais, reflexivas e bíblicas. Crie e compartilhe suas próprias frases inspiradoras.",
   "lang": "pt-BR",
+  "dir": "ltr",
   "start_url": "/?utm_source=homescreen",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#FFFFFF",
   "theme_color": "#3B82F6",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-48x48.png",
@@ -63,6 +67,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/tela_001.png",
+      "sizes": "393x852",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tela principal com frase do dia"
+    },
+    {
+      "src": "/screenshots/tela_dois.png",
+      "sizes": "393x852",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Suas frases favoritas salvas"
     }
   ],
   "categories": ["lifestyle", "entertainment", "productivity"],
