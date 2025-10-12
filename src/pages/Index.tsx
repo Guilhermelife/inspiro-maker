@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, Share2, RefreshCw, Plus } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,8 +104,13 @@ const Index = () => {
     }
   };
 
-  const handleFavorite = () => {
+  const handleFavorite = async () => {
     if (!currentQuote) return;
+
+    // Haptic feedback on native
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light }).catch(console.error);
+    }
 
     if (isFavorited) {
       const favorite = getFavoriteByText(currentQuote.text);
@@ -135,6 +143,22 @@ const Index = () => {
         author: currentQuote.author,
       });
 
+      // Use native Share API if available (Capacitor)
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: 'Frase do Dia',
+          text: `"${currentQuote.text}" — ${currentQuote.author}`,
+          url: imageUrl,
+          dialogTitle: 'Compartilhar Frase',
+        });
+        
+        toast({
+          title: "Compartilhado com sucesso!",
+        });
+        return;
+      }
+
+      // Web fallback
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], 'frase-do-dia.png', { type: 'image/png' });

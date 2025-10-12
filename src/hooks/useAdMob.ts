@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition } from '@capacitor-community/admob';
 import { Capacitor } from '@capacitor/core';
-
-const BANNER_AD_UNIT_ID = 'ca-app-pub-4360211752887255/5525196631';
-const TEST_BANNER_AD_UNIT_ID = 'ca-app-pub-3940256099942544/6300978111';
+import { ADMOB_CONFIG } from '@/config/admob';
 
 export const useAdMob = () => {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -16,7 +14,7 @@ export const useAdMob = () => {
         try {
           await AdMob.initialize({
             testingDevices: [],
-            initializeForTesting: true, // Mudar para false em produção
+            initializeForTesting: ADMOB_CONFIG.IS_TESTING,
           });
           setIsInitialized(true);
           console.log('AdMob initialized successfully');
@@ -33,11 +31,11 @@ export const useAdMob = () => {
     if (!isNative || !isInitialized) return;
 
     const options: BannerAdOptions = {
-      adId: TEST_BANNER_AD_UNIT_ID, // Use BANNER_AD_UNIT_ID em produção
+      adId: ADMOB_CONFIG.BANNER_AD_UNIT_ID,
       adSize: BannerAdSize.BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
       margin: 0,
-      isTesting: true, // Mudar para false em produção
+      isTesting: ADMOB_CONFIG.IS_TESTING,
     };
 
     try {
