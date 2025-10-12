@@ -1,105 +1,26 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Heart, Share2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Trash2, Heart, Share2, LogOut } from "lucide-react";
-import { generateQuoteImage } from "@/lib/imageGenerator";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
-interface FavoriteQuote {
-  id: string;
-  quote_text: string;
-  author: string;
-  category?: string;
-  created_at: string;
-}
+import { generateQuoteImage } from "@/lib/imageGenerator";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const Favorites = () => {
   const navigate = useNavigate();
-  const { user, signOut, loading } = useAuth();
-  const [favorites, setFavorites] = useState<FavoriteQuote[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { favorites, removeFavorite } = useFavorites();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth", { state: { from: "/favorites" } });
-    }
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (user) {
-      loadFavorites();
-    }
-  }, [user]);
-
-  const loadFavorites = async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('favorite_quotes')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setFavorites(data || []);
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-      toast({
-        title: "Erro ao carregar favoritos",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await signOut();
+  const handleDelete = (id: string) => {
+    removeFavorite(id);
     toast({
-      title: "Logout realizado",
-      description: "Até logo!",
+      title: "Frase removida",
+      description: "A frase foi removida dos seus favoritos",
     });
-    navigate("/");
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('favorite_quotes')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setFavorites(favorites.filter(fav => fav.id !== id));
-      toast({
-        title: "Frase removida",
-        description: "A frase foi removida dos seus favoritos.",
-      });
-    } catch (error) {
-      console.error('Error deleting favorite:', error);
-      toast({
-        title: "Erro ao remover",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleShare = async (favorite: FavoriteQuote) => {
+  const handleShare = async (favorite: { quote_text: string; author: string }) => {
     try {
       const imageUrl = await generateQuoteImage({
         text: favorite.quote_text,
@@ -156,39 +77,10 @@ const Favorites = () => {
         </Button>
       </div>
 
-      {/* Floating Actions - Top Right */}
+      {/* Theme Toggle - Top Right */}
       <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
-        <div className="flex items-center gap-2">
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="focus:outline-none">
-                  <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all backdrop-blur-md shadow-lg border border-border/50">
-                    <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || user.email} />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card backdrop-blur-md">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user.user_metadata?.full_name || "Usuário"}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
-            <ThemeToggle />
-          </div>
+        <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
+          <ThemeToggle />
         </div>
       </div>
 
@@ -199,17 +91,7 @@ const Favorites = () => {
 
       {/* Content */}
       <main className="max-w-screen-lg mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
-        {isLoading ? (
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="p-6 rounded-lg bg-card border animate-pulse">
-                <Skeleton className="h-4 w-20 mb-4" />
-                <Skeleton className="h-24 w-full mb-4" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            ))}
-          </div>
-        ) : favorites.length === 0 ? (
+        {favorites.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 sm:py-24 text-center px-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
               <Heart className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
@@ -218,14 +100,14 @@ const Favorites = () => {
               Nenhuma frase favorita ainda
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-6">
-              Favorite as frases que mais te inspiram para vê-las aqui a qualquer momento.
+              Comece a adicionar suas frases favoritas na página inicial! ❤️
             </p>
             <Button
               variant="outline"
               className="gap-2 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 transition-all"
               onClick={() => navigate('/')}
             >
-              Voltar para início
+              Explorar Frases
             </Button>
           </div>
         ) : (

@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Heart, Share2, RefreshCw, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Plus, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import QuoteCard from "@/components/QuoteCard";
-import ActionButtons from "@/components/ActionButtons";
 import CategorySelector, { QuoteCategory } from "@/components/CategorySelector";
-import AdBanner from "@/components/AdBanner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import CreateQuoteModal from "@/components/CreateQuoteModal";
-import { getRandomQuote, type Quote } from "@/lib/quotes";
+import ActionButtons from "@/components/ActionButtons";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuoteHistory } from "@/hooks/useQuoteHistory";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useUserQuotes } from "@/hooks/useUserQuotes";
 import { generateQuoteImage } from "@/lib/imageGenerator";
-import logo from "@/assets/logo.png";
+import { getRandomQuote, type Quote } from "@/lib/quotes";
+import AdBanner from "@/components/AdBanner";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useQuoteHistory } from "@/hooks/useQuoteHistory";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import logo from "@/assets/logo.png";
 import { z } from "zod";
 
 const quoteInputSchema = z.object({
@@ -37,14 +37,15 @@ const quoteInputSchema = z.object({
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const { addToHistory, history } = useQuoteHistory();
+  const { favorites, addFavorite, removeFavorite, isFavorited: checkIsFavorited, getFavoriteByText } = useFavorites();
+  const { addUserQuote } = useUserQuotes();
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [category, setCategory] = useState<QuoteCategory>("aleatoria");
   const [isFavorited, setIsFavorited] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { toast } = useToast();
-  const { history, addToHistory } = useQuoteHistory();
 
   // Load initial quote
   useEffect(() => {
@@ -56,32 +57,12 @@ const Index = () => {
     loadInitialQuote();
   }, []);
 
+  // Check if current quote is favorited
   useEffect(() => {
     if (currentQuote) {
-      checkIfFavorited();
+      setIsFavorited(checkIsFavorited(currentQuote.text));
     }
-  }, [currentQuote]);
-
-  const checkIfFavorited = async () => {
-    if (!currentQuote || !user) {
-      setIsFavorited(false);
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('favorite_quotes')
-        .select('id')
-        .eq('quote_text', currentQuote.text)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setIsFavorited(!!data);
-    } catch (error) {
-      console.error('Error checking favorite status:', error);
-    }
-  };
+  }, [currentQuote, favorites]);
 
   const generateNewQuote = async () => {
     setIsGenerating(true);
@@ -120,63 +101,40 @@ const Index = () => {
     }
   };
 
-  const handleFavorite = async () => {
-    if (!user) {
-      navigate("/auth", { state: { from: "/" } });
-      return;
-    }
+  const handleFavorite = () => {
+    if (!currentQuote) return;
 
-    try {
-      if (isFavorited) {
-        const { error } = await supabase
-          .from('favorite_quotes')
-          .delete()
-          .eq('quote_text', currentQuote!.text)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
+    if (isFavorited) {
+      const favorite = getFavoriteByText(currentQuote.text);
+      if (favorite) {
+        removeFavorite(favorite.id);
         setIsFavorited(false);
         toast({
           title: "Removida dos favoritos",
-          variant: "default",
-        });
-      } else {
-        const { error } = await supabase
-          .from('favorite_quotes')
-          .insert({
-            quote_text: currentQuote!.text,
-            author: currentQuote!.author,
-            category: currentQuote!.category,
-            user_id: user.id,
-          });
-
-        if (error) throw error;
-
-        setIsFavorited(true);
-        toast({
-          title: "Adicionada aos favoritos!",
-          description: "Você pode ver suas frases favoritas a qualquer momento.",
         });
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    } else {
+      addFavorite({
+        quote_text: currentQuote.text,
+        author: currentQuote.author,
+        category: currentQuote.category,
+      });
+      setIsFavorited(true);
       toast({
-        title: "Erro ao favoritar",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
+        title: "Adicionada aos favoritos! ❤️",
       });
     }
   };
 
   const handleShare = async () => {
+    if (!currentQuote) return;
+    
     try {
       const imageUrl = await generateQuoteImage({
-        text: currentQuote!.text,
-        author: currentQuote!.author,
+        text: currentQuote.text,
+        author: currentQuote.author,
       });
 
-      // Convert data URL to blob
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], 'frase-do-dia.png', { type: 'image/png' });
@@ -184,7 +142,7 @@ const Index = () => {
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: 'Frase do Dia',
-          text: `"${currentQuote!.text}" — ${currentQuote!.author}`,
+          text: `"${currentQuote.text}" — ${currentQuote.author}`,
           files: [file],
         });
         
@@ -192,7 +150,6 @@ const Index = () => {
           title: "Compartilhado com sucesso!",
         });
       } else {
-        // Fallback: download image
         const link = document.createElement('a');
         link.href = imageUrl;
         link.download = 'frase-do-dia.png';
@@ -214,12 +171,6 @@ const Index = () => {
   };
 
   const handleCreateQuote = async (text: string, author: string, photoUrl?: string) => {
-    if (!user) {
-      setIsCreateModalOpen(false);
-      navigate("/auth", { state: { from: "/" } });
-      return;
-    }
-
     try {
       // Validate inputs
       const validationResult = quoteInputSchema.safeParse({
@@ -238,16 +189,8 @@ const Index = () => {
         return;
       }
 
-      const { error } = await supabase
-        .from('user_quotes')
-        .insert({
-          quote_text: text,
-          author: author,
-          profile_photo_url: photoUrl || null,
-          user_id: user.id,
-        });
-
-      if (error) throw error;
+      // Save to localStorage
+      addUserQuote(text, author, photoUrl);
 
       // Generate and share image
       const imageUrl = await generateQuoteImage({
@@ -274,8 +217,8 @@ const Index = () => {
       }
 
       toast({
-        title: "Frase criada e compartilhada!",
-        description: "Sua inspiração foi salva e compartilhada com sucesso.",
+        title: "Frase criada e compartilhada! 🎉",
+        description: "Sua inspiração foi salva com sucesso.",
       });
     } catch (error) {
       console.error('Error creating quote:', error);
@@ -286,14 +229,6 @@ const Index = () => {
       });
       throw error;
     }
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-    toast({
-      title: "Logout realizado",
-      description: "Até logo!",
-    });
   };
 
   return (
@@ -312,53 +247,20 @@ const Index = () => {
       {/* Floating Actions - Top Right */}
       <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
         <div className="flex items-center gap-2">
-          {user ? (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-10 w-10 backdrop-blur-md bg-background/60 border border-border/50 shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
-                onClick={() => navigate('/favorites')}
-                aria-label="Ver favoritos"
-              >
-                <Heart className="h-5 w-5" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="focus:outline-none">
-                    <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all backdrop-blur-md shadow-lg border border-border/50">
-                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || user.email} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-card backdrop-blur-md">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{user.user_metadata?.full_name || "Usuário"}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <Button
-              variant="default"
-              size="sm"
-              className="h-10 backdrop-blur-md shadow-lg border border-border/50"
-              onClick={() => navigate('/auth')}
-            >
-              Entrar
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-10 w-10 backdrop-blur-md bg-background/60 border border-border/50 shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95 relative"
+            onClick={() => navigate('/favorites')}
+            aria-label="Ver favoritos"
+          >
+            <Heart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-primary text-primary' : ''}`} />
+            {favorites.length > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                {favorites.length}
+              </Badge>
+            )}
+          </Button>
           <div className="backdrop-blur-md bg-background/60 rounded-full shadow-lg border border-border/50">
             <ThemeToggle />
           </div>
