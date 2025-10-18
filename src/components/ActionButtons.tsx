@@ -17,43 +17,45 @@ const ActionButtons = ({
   isGenerating = false,
 }: ActionButtonsProps) => {
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-3 w-full max-w-md mx-auto">
+    <div className="flex gap-3 w-full max-w-lg mx-auto">
+      {/* Botão Nova Frase - Destaque */}
       <Button
-        variant="outline"
+        variant="default"
         size="lg"
-        className="flex-1 h-12 sm:h-14 gap-2 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 transition-all duration-200"
+        className="flex-1 h-14 gap-3 bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/50 hover:-translate-y-1 transition-all duration-300 group"
         onClick={onNewQuote}
         disabled={isGenerating}
         aria-label="Gerar nova frase"
       >
-        <RefreshCw className={`h-5 w-5 ${isGenerating ? 'animate-spin' : ''}`} />
-        <span className="hidden xs:inline">Nova</span>
+        <RefreshCw className={`h-5 w-5 ${isGenerating ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+        <span className="font-semibold hidden xs:inline">Nova Inspiração</span>
+        <span className="font-semibold xs:hidden">Nova</span>
       </Button>
       
+      {/* Botão Favoritar - Emocional */}
       <Button
-        variant="outline"
+        variant={isFavorited ? "default" : "outline"}
         size="lg"
-        className={`flex-1 h-12 sm:h-14 gap-2 border-2 active:scale-95 transition-all duration-200 ${
-          isFavorited
-            ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
-            : 'hover:bg-primary hover:text-primary-foreground hover:border-primary'
+        className={`h-14 w-14 rounded-full transition-all duration-300 ${
+          isFavorited 
+            ? 'bg-gradient-to-br from-pink-500 to-rose-500 hover:scale-110 shadow-lg shadow-pink-500/50 border-0' 
+            : 'hover:scale-110 hover:border-pink-500 hover:text-pink-500 border-2'
         }`}
         onClick={onFavorite}
         aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
       >
-        <Heart className={`h-5 w-5 transition-transform ${isFavorited ? 'fill-current scale-110' : ''}`} />
-        <span className="hidden xs:inline">{isFavorited ? 'Favoritada' : 'Favoritar'}</span>
+        <Heart className={`h-5 w-5 transition-all duration-300 ${isFavorited ? 'fill-current animate-pulse' : ''}`} />
       </Button>
       
+      {/* Botão Compartilhar - Social */}
       <Button
         variant="outline"
         size="lg"
-        className="flex-1 h-12 sm:h-14 gap-2 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 transition-all duration-200"
+        className="h-14 w-14 rounded-full hover:bg-green-500 hover:text-white hover:border-green-500 hover:scale-110 transition-all duration-300 border-2"
         onClick={onShare}
         aria-label="Compartilhar frase"
       >
         <Share2 className="h-5 w-5" />
-        <span className="hidden xs:inline">Compartilhar</span>
       </Button>
     </div>
   );

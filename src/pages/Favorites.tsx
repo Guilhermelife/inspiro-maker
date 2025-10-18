@@ -92,22 +92,33 @@ const Favorites = () => {
       {/* Content */}
       <main className="max-w-screen-lg mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
         {favorites.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 sm:py-24 text-center px-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <Heart className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 px-4 animate-fade-in">
+            {/* Ilustração com emoji e decoração */}
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center animate-bounce-subtle">
+                <span className="text-6xl">💝</span>
+              </div>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+                <span className="text-white text-xl">+</span>
+              </div>
             </div>
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
-              Nenhuma frase favorita ainda
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-6">
-              Comece a adicionar suas frases favoritas na página inicial! ❤️
-            </p>
+            
+            <div className="space-y-2 max-w-md">
+              <h2 className="text-2xl font-bold text-foreground">
+                Suas frases favoritas aparecerão aqui
+              </h2>
+              <p className="text-muted-foreground">
+                Comece a colecionar frases que tocam seu coração e inspire-se sempre que precisar!
+              </p>
+            </div>
+            
             <Button
-              variant="outline"
-              className="gap-2 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 transition-all"
+              size="lg"
+              className="gap-2 h-12 px-8 shadow-lg hover:shadow-xl transition-all"
               onClick={() => navigate('/')}
             >
-              Explorar Frases
+              <Heart className="h-5 w-5" />
+              Descobrir Frases
             </Button>
           </div>
         ) : (

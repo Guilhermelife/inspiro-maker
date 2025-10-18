@@ -1,10 +1,5 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { categoryThemes, CategoryKey } from "@/lib/categoryThemes";
+import { Check } from "lucide-react";
 
 export type QuoteCategory = 
   | "motivacional"
@@ -25,30 +20,49 @@ const categories: { value: QuoteCategory; label: string }[] = [
   { value: "motivacional", label: "Motivacional" },
   { value: "reflexiva", label: "Reflexiva" },
   { value: "biblica", label: "Bíblica" },
-  { value: "autor", label: "De Autor" },
-  { value: "amor", label: "Amor & Espiritual" },
-  { value: "motivacao-reversa", label: "Motivação Reversa 🔥" },
+  { value: "amor", label: "Amor" },
+  { value: "motivacao-reversa", label: "Motivação Reversa" },
 ];
 
 const CategorySelector = ({ value, onChange }: CategorySelectorProps) => {
   return (
-    <div className="w-full max-w-md mx-auto">
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-11 sm:h-12 border-2 bg-background hover:border-primary/50 transition-colors duration-200">
-          <SelectValue placeholder="Selecione uma categoria" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover border-2">
-          {categories.map((category) => (
-            <SelectItem 
-              key={category.value} 
-              value={category.value}
-              className="cursor-pointer"
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {categories.map((cat) => {
+          const theme = categoryThemes[cat.value as CategoryKey];
+          const isSelected = value === cat.value;
+          
+          return (
+            <button
+              key={cat.value}
+              onClick={() => onChange(cat.value)}
+              className={`
+                group relative p-6 rounded-2xl border-2 transition-all duration-300
+                hover:scale-105 hover:shadow-lg active:scale-95
+                ${isSelected 
+                  ? `${theme.border} ${theme.bgGradient}` 
+                  : 'border-border hover:border-primary/50'
+                }
+              `}
             >
-              {category.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+              <div className="flex flex-col items-center gap-3">
+                <span className="text-4xl group-hover:scale-110 transition-transform">
+                  {theme.icon}
+                </span>
+                <span className={`text-sm font-semibold text-center ${isSelected ? theme.color : 'text-foreground'}`}>
+                  {cat.label}
+                </span>
+              </div>
+              
+              {isSelected && (
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center animate-scale-in shadow-lg">
+                  <Check className="h-3 w-3 text-white" />
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

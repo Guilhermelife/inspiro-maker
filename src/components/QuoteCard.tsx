@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { categoryThemes, CategoryKey } from "@/lib/categoryThemes";
 
 interface QuoteCardProps {
   text: string;
@@ -7,20 +8,43 @@ interface QuoteCardProps {
 }
 
 const QuoteCard = ({ text, author, category }: QuoteCardProps) => {
+  const theme = category ? categoryThemes[category as CategoryKey] : null;
+  
   return (
-    <Card className="w-full max-w-2xl mx-auto p-6 sm:p-8 md:p-12 border-0 bg-card animate-fade-in transition-all duration-300" style={{ boxShadow: 'var(--shadow-elegant)' }}>
-      <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
-        {category && (
-          <span className="text-xs sm:text-sm tracking-wide text-muted-foreground font-medium px-3 py-1 rounded-full bg-secondary/50">
-            {category}
-          </span>
+    <Card className="group relative overflow-hidden w-full max-w-2xl mx-auto border-2 hover:border-primary/20 transition-all duration-500 animate-fade-in" style={{ boxShadow: 'var(--shadow-elegant)' }}>
+      {/* Gradiente de fundo baseado na categoria */}
+      {theme && (
+        <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+      )}
+      
+      {/* Aspas decorativas */}
+      <div className="absolute top-4 left-4 text-6xl sm:text-7xl text-primary/10 font-serif leading-none select-none">"</div>
+      <div className="absolute bottom-4 right-4 text-6xl sm:text-7xl text-primary/10 font-serif leading-none select-none">"</div>
+      
+      <div className="relative z-10 p-8 sm:p-10 md:p-12">
+        {/* Badge com ícone */}
+        {category && theme && (
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <span className="text-2xl">{theme.icon}</span>
+            <span className={`text-xs font-semibold tracking-widest uppercase ${theme.color}`}>
+              {category}
+            </span>
+          </div>
         )}
-        <blockquote className="text-xl sm:text-2xl md:text-3xl font-medium text-foreground max-w-xl" style={{ lineHeight: '1.6' }}>
-          "{text}"
+        
+        {/* Frase com fonte serif elegante */}
+        <blockquote className="font-serif text-2xl sm:text-3xl md:text-4xl leading-relaxed mb-6 text-foreground">
+          {text}
         </blockquote>
-        <cite className="text-sm sm:text-base text-muted-foreground not-italic font-medium">
-          — {author}
-        </cite>
+        
+        {/* Autor com divider decorativo */}
+        <div className="flex items-center gap-4">
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-border" />
+          <cite className="text-sm font-medium tracking-wide text-muted-foreground not-italic">
+            {author}
+          </cite>
+          <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-border" />
+        </div>
       </div>
     </Card>
   );

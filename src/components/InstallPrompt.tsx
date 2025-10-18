@@ -32,51 +32,39 @@ export const InstallPrompt = () => {
 
   return (
     <>
-      {/* Banner de Instalação */}
+      {/* Banner de Instalação Premium */}
       {(isInstallable || isIOS) && (
-        <Card className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-50 p-4 shadow-xl border-2 border-primary/20 bg-background/95 backdrop-blur-sm animate-slide-up">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Smartphone className="h-5 w-5 text-primary" />
-            </div>
-            
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">
-                Instalar Frases do Dia
-              </h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Acesse mais rápido e use offline instalando nosso app!
-              </p>
-              
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={handleInstall}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Instalar
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost"
-                  onClick={() => setShowBanner(false)}
-                >
-                  Agora não
-                </Button>
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 max-w-md w-[calc(100%-2rem)] animate-slide-up">
+          <div className="bg-gradient-to-r from-primary to-accent p-4 rounded-2xl shadow-2xl border-2 border-white/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0">
+                <Smartphone className="w-6 h-6 text-primary" />
               </div>
+              
+              <div className="flex-1 text-white">
+                <p className="font-bold text-sm">Instalar App</p>
+                <p className="text-xs opacity-90">Acesso rápido e offline</p>
+              </div>
+              
+              <Button
+                size="sm"
+                className="bg-white text-primary hover:bg-white/90 font-bold"
+                onClick={handleInstall}
+              >
+                Instalar
+              </Button>
+              
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-white hover:bg-white/20 flex-shrink-0"
+                onClick={() => setShowBanner(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 -mt-1 -mr-1"
-              onClick={() => setShowBanner(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Modal com Instruções iOS */}

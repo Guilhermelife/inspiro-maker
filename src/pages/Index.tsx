@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Share2, RefreshCw, Plus } from "lucide-react";
+import { Heart, Share2, RefreshCw, Plus, Maximize2 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { Share } from "@capacitor/share";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import confetti from 'canvas-confetti';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import QuoteCard from "@/components/QuoteCard";
 import CategorySelector, { QuoteCategory } from "@/components/CategorySelector";
@@ -17,11 +17,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuoteHistory } from "@/hooks/useQuoteHistory";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useUserQuotes } from "@/hooks/useUserQuotes";
+import { useStreaks } from "@/hooks/useStreaks";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { generateQuoteImage } from "@/lib/imageGenerator";
 import { getRandomQuote, type Quote } from "@/lib/quotes";
 import AdBanner from "@/components/AdBanner";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
+import { QuoteLoadingState } from "@/components/QuoteLoadingState";
+import { StatsCounter } from "@/components/StatsCounter";
+import { OnboardingModal } from "@/components/OnboardingModal";
+import { FocusMode } from "@/components/FocusMode";
 import logo from "@/assets/logo.png";
 import { z } from "zod";
 
@@ -44,11 +50,14 @@ const Index = () => {
   const { addToHistory, history } = useQuoteHistory();
   const { favorites, addFavorite, removeFavorite, isFavorited: checkIsFavorited, getFavoriteByText } = useFavorites();
   const { addUserQuote } = useUserQuotes();
+  const { currentStreak, bestStreak } = useStreaks();
+  const { showOnboarding, step, nextStep, completeOnboarding } = useOnboarding();
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [category, setCategory] = useState<QuoteCategory>("aleatoria");
   const [isFavorited, setIsFavorited] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
 
   // Load initial quote
   useEffect(() => {
@@ -118,7 +127,8 @@ const Index = () => {
         removeFavorite(favorite.id);
         setIsFavorited(false);
         toast({
-          title: "Removida dos favoritos",
+          title: "💔 Removida dos favoritos",
+          description: "Você pode adicionar novamente quando quiser",
         });
       }
     } else {
@@ -128,9 +138,34 @@ const Index = () => {
         category: currentQuote.category,
       });
       setIsFavorited(true);
-      toast({
-        title: "Adicionada aos favoritos! ❤️",
+      
+      // Confetti animation!
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
       });
+      
+      // Check milestone
+      const newFavoritesCount = favorites.length + 1;
+      if (newFavoritesCount === 10) {
+        toast({
+          title: "🏆 Colecionador Nível 1!",
+          description: "Você já tem 10 frases favoritas. Continue assim!",
+          duration: 5000,
+        });
+      } else if (newFavoritesCount === 50) {
+        toast({
+          title: "🌟 Colecionador Master!",
+          description: "Incrível! 50 frases favoritas! Você é inspirador!",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "❤️ Adicionada com amor!",
+          description: "Esta frase agora faz parte da sua coleção especial",
+        });
+      }
     }
   };
 
@@ -153,7 +188,8 @@ const Index = () => {
         });
         
         toast({
-          title: "Compartilhado com sucesso!",
+          title: "🎉 Inspiração compartilhada!",
+          description: "Você acabou de iluminar o dia de alguém",
         });
         return;
       }
@@ -171,7 +207,8 @@ const Index = () => {
         });
         
         toast({
-          title: "Compartilhado com sucesso!",
+          title: "🎉 Inspiração compartilhada!",
+          description: "Você acabou de iluminar o dia de alguém",
         });
       } else {
         const link = document.createElement('a');
@@ -257,6 +294,24 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-subtle)' }}>
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal 
+          step={step} 
+          onNext={nextStep}
+          onComplete={completeOnboarding}
+        />
+      )}
+      
+      {/* Focus Mode */}
+      {focusMode && currentQuote && (
+        <FocusMode 
+          text={currentQuote.text}
+          author={currentQuote.author}
+          onClose={() => setFocusMode(false)}
+        />
+      )}
+      
       {/* Floating Logo - Top Left */}
       <div className="fixed top-0 left-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pl-[max(1rem,env(safe-area-inset-left))]">
         <div className="backdrop-blur-md bg-background/60 rounded-full p-2 shadow-lg border border-border/50">
@@ -267,6 +322,19 @@ const Index = () => {
           />
         </div>
       </div>
+      
+      {/* Streaks Display - Top Center */}
+      {currentStreak > 0 && (
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 z-30 pt-[max(1rem,env(safe-area-inset-top))]">
+          <div className="flex items-center gap-2 backdrop-blur-md bg-background/60 rounded-full px-4 py-2 shadow-lg border border-border/50 animate-fade-in">
+            <span className="text-2xl">🔥</span>
+            <div>
+              <p className="text-xs text-muted-foreground leading-none">Streak</p>
+              <p className="text-sm font-bold text-primary leading-none mt-0.5">{currentStreak} dias</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Actions - Top Right */}
       <div className="fixed top-0 right-0 z-30 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))]">
@@ -294,24 +362,34 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 pt-20 sm:pt-24 pb-8 sm:pb-12 gap-6 sm:gap-8">
         <div className="w-full max-w-screen-lg space-y-6 sm:space-y-8">
+          {/* Stats Counter */}
+          <StatsCounter />
+          
           {/* Category Selector */}
           <CategorySelector value={category} onChange={setCategory} />
 
           {/* Quote Card */}
           {isGenerating || !currentQuote ? (
-            <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 md:p-12">
-              <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
-                <Skeleton className="h-6 w-32 rounded-full" />
-                <Skeleton className="h-32 w-full max-w-xl" />
-                <Skeleton className="h-5 w-40" />
-              </div>
-            </div>
+            <QuoteLoadingState />
           ) : (
-            <QuoteCard
-              text={currentQuote.text}
-              author={currentQuote.author}
-              category={currentQuote.category}
-            />
+            <div className="relative">
+              <QuoteCard
+                text={currentQuote.text}
+                author={currentQuote.author}
+                category={currentQuote.category}
+              />
+              
+              {/* Focus Mode Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 h-8 w-8 rounded-full opacity-0 hover:opacity-100 transition-opacity"
+                onClick={() => setFocusMode(true)}
+                aria-label="Modo foco"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
 
           {/* Action Buttons */}
