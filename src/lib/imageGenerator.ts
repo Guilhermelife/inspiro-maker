@@ -1,6 +1,7 @@
 export interface QuoteImageOptions {
   text: string;
   author: string;
+  category?: string;
   profilePhotoUrl?: string;
   appName?: string;
 }
@@ -8,6 +9,7 @@ export interface QuoteImageOptions {
 export const generateQuoteImage = async ({
   text,
   author,
+  category = 'aleatoria',
   profilePhotoUrl,
   appName = "Frases do Dia"
 }: QuoteImageOptions): Promise<string> => {
@@ -16,30 +18,50 @@ export const generateQuoteImage = async ({
   
   if (!ctx) throw new Error('Could not get canvas context');
   
-  // Set canvas size (Instagram square format)
-  canvas.width = 1080;
-  canvas.height = 1080;
+  // Set canvas size (OG Image size - ideal for social sharing)
+  canvas.width = 1200;
+  canvas.height = 630;
+  
+  // Category-based gradients
+  const categoryGradients: Record<string, { start: string; end: string }> = {
+    motivacional: { start: 'rgba(249, 115, 22, 0.15)', end: 'rgba(239, 68, 68, 0.15)' },
+    reflexiva: { start: 'rgba(168, 85, 247, 0.15)', end: 'rgba(59, 130, 246, 0.15)' },
+    biblica: { start: 'rgba(245, 158, 11, 0.15)', end: 'rgba(234, 179, 8, 0.15)' },
+    amor: { start: 'rgba(236, 72, 153, 0.15)', end: 'rgba(244, 63, 94, 0.15)' },
+    'motivacao-reversa': { start: 'rgba(239, 68, 68, 0.15)', end: 'rgba(107, 114, 128, 0.15)' },
+    aleatoria: { start: 'rgba(59, 130, 246, 0.15)', end: 'rgba(6, 182, 212, 0.15)' },
+  };
+  
+  const colors = categoryGradients[category] || categoryGradients.aleatoria;
   
   // Background
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Add subtle gradient overlay
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, 'rgba(47, 128, 237, 0.03)');
-  gradient.addColorStop(1, 'rgba(47, 128, 237, 0.08)');
+  // Add gradient overlay based on category
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, colors.start);
+  gradient.addColorStop(1, colors.end);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Quote text
+  // Decorative quotes
+  ctx.font = '120px Georgia, serif';
+  ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
+  ctx.textAlign = 'left';
+  ctx.fillText('"', 60, 120);
+  ctx.textAlign = 'right';
+  ctx.fillText('"', canvas.width - 60, canvas.height - 40);
+  
+  // Quote text with Playfair Display (serif)
   ctx.fillStyle = '#1F2937';
-  ctx.font = 'bold 56px Poppins, sans-serif';
+  ctx.font = '600 48px Georgia, serif'; // Fallback to Georgia
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
   // Word wrap for quote
-  const maxWidth = canvas.width - 160;
-  const lineHeight = 80;
+  const maxWidth = canvas.width - 240;
+  const lineHeight = 70;
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
@@ -56,16 +78,25 @@ export const generateQuoteImage = async ({
   });
   lines.push(currentLine);
   
-  // Draw quote text
-  const startY = canvas.height / 2 - (lines.length * lineHeight) / 2;
+  // Draw quote text centered
+  const startY = canvas.height / 2 - (lines.length * lineHeight) / 2 + 20;
   lines.forEach((line, index) => {
-    ctx.fillText(`"${line.trim()}"`, canvas.width / 2, startY + index * lineHeight);
+    ctx.fillText(line.trim(), canvas.width / 2, startY + index * lineHeight);
   });
   
+  // Decorative divider
+  const dividerY = startY + lines.length * lineHeight + 40;
+  ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width / 2 - 100, dividerY);
+  ctx.lineTo(canvas.width / 2 + 100, dividerY);
+  ctx.stroke();
+  
   // Author
-  ctx.font = '32px Poppins, sans-serif';
+  ctx.font = '28px Georgia, serif';
   ctx.fillStyle = '#6B7280';
-  ctx.fillText(`— ${author}`, canvas.width / 2, startY + lines.length * lineHeight + 60);
+  ctx.fillText(`— ${author}`, canvas.width / 2, dividerY + 45);
   
   // Profile photo (if provided)
   if (profilePhotoUrl) {
@@ -95,15 +126,15 @@ export const generateQuoteImage = async ({
     }
   }
   
-  // App name footer
-  ctx.font = '24px Poppins, sans-serif';
-  ctx.fillStyle = '#2F80ED';
-  ctx.fillText(appName, canvas.width / 2, canvas.height - 80);
+  // App name footer with watermark
+  ctx.font = '20px sans-serif';
+  ctx.fillStyle = 'rgba(59, 130, 246, 0.6)';
+  ctx.fillText(appName, canvas.width / 2, canvas.height - 40);
   
-  // Border
-  ctx.strokeStyle = '#E5E7EB';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+  // Subtle border
+  ctx.strokeStyle = 'rgba(59, 130, 246, 0.15)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
   
   return canvas.toDataURL('image/png');
 };

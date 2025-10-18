@@ -1,0 +1,45 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "✨ Frase do Dia",
+          "weight": "Bolder",
+          "size": "Medium",
+          "horizontalAlignment": "Center",
+          "color": "Accent"
+        },
+        {
+          "type": "TextBlock",
+          "text": "${quote.text}",
+          "wrap": true,
+          "horizontalAlignment": "Center",
+          "size": "Large",
+          "weight": "Bolder",
+          "spacing": "Medium"
+        },
+        {
+          "type": "TextBlock",
+          "text": "— ${quote.author}",
+          "horizontalAlignment": "Center",
+          "size": "Small",
+          "weight": "Lighter",
+          "spacing": "Small"
+        }
+      ],
+      "style": "emphasis",
+      "bleed": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Ver Mais",
+      "url": "/"
+    }
+  ]
+}

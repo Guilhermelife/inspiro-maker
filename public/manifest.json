@@ -123,5 +123,25 @@
       "url": "/favorites",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
+  ],
+  "widgets": [
+    {
+      "name": "Frase do Dia",
+      "short_name": "Frase",
+      "description": "Veja a frase inspiradora do dia",
+      "tag": "daily-quote",
+      "template": "widget-template",
+      "data": "/widget-data.json",
+      "type": "application/json",
+      "screenshots": ["/screenshots/tela_001.png"],
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "auth": false,
+      "update": 86400
+    }
   ]
 }

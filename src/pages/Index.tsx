@@ -25,11 +25,12 @@ import AdBanner from "@/components/AdBanner";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { QuoteLoadingState } from "@/components/QuoteLoadingState";
-import { StatsCounter } from "@/components/StatsCounter";
+import { StatsCounter, incrementShareCount } from "@/components/StatsCounter";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { FocusMode } from "@/components/FocusMode";
-import logo from "@/assets/logo.png";
+import { DailyQuoteBanner } from "@/components/DailyQuoteBanner";
 import { z } from "zod";
+import logo from "@/assets/logo.png";
 
 const quoteInputSchema = z.object({
   quote_text: z.string()
@@ -176,7 +177,11 @@ const Index = () => {
       const imageUrl = await generateQuoteImage({
         text: currentQuote.text,
         author: currentQuote.author,
+        category,
       });
+      
+      // Increment share counter
+      incrementShareCount();
 
       // Use native Share API if available (Capacitor)
       if (Capacitor.isNativePlatform()) {
