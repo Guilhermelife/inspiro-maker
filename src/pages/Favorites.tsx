@@ -1,16 +1,21 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Share2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { generateQuoteImage } from "@/lib/imageGenerator";
+import { generateQuoteImage, ImageFormat } from "@/lib/imageGenerator";
+import { ShareFormatSelector } from "@/components/ShareFormatSelector";
 import { useFavorites } from "@/hooks/useFavorites";
 
 const Favorites = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { favorites, removeFavorite } = useFavorites();
+  const [isFormatSelectorOpen, setIsFormatSelectorOpen] = useState(false);
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [selectedFavorite, setSelectedFavorite] = useState<{ quote_text: string; author: string; category?: string } | null>(null);
 
   const handleDelete = (id: string) => {
     removeFavorite(id);
@@ -20,11 +25,23 @@ const Favorites = () => {
     });
   };
 
-  const handleShare = async (favorite: { quote_text: string; author: string }) => {
+  const handleShare = (favorite: { quote_text: string; author: string; category?: string }) => {
+    setSelectedFavorite(favorite);
+    setIsFormatSelectorOpen(true);
+  };
+
+  const handleShareWithFormat = async (format: ImageFormat) => {
+    if (!selectedFavorite) return;
+    
+    setIsFormatSelectorOpen(false);
+    setIsGeneratingShare(true);
+    
     try {
       const imageUrl = await generateQuoteImage({
-        text: favorite.quote_text,
-        author: favorite.author,
+        text: selectedFavorite.quote_text,
+        author: selectedFavorite.author,
+        category: selectedFavorite.category,
+        format,
       });
 
       const response = await fetch(imageUrl);
@@ -34,7 +51,7 @@ const Favorites = () => {
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: 'Frase do Dia',
-          text: `"${favorite.quote_text}" — ${favorite.author}`,
+          text: `"${selectedFavorite.quote_text}" — ${selectedFavorite.author}`,
           files: [file],
         });
         
@@ -59,6 +76,43 @@ const Favorites = () => {
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingShare(false);
+    }
+  };
+
+  const handleDownloadWithFormat = async (format: ImageFormat) => {
+    if (!selectedFavorite) return;
+    
+    setIsFormatSelectorOpen(false);
+    setIsGeneratingShare(true);
+
+    try {
+      const imageDataUrl = await generateQuoteImage({
+        text: selectedFavorite.quote_text,
+        author: selectedFavorite.author,
+        category: selectedFavorite.category,
+        format,
+      });
+
+      const link = document.createElement('a');
+      link.download = `frase-${format}-${Date.now()}.png`;
+      link.href = imageDataUrl;
+      link.click();
+
+      toast({
+        title: "Download iniciado!",
+        description: "A imagem foi baixada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error downloading:', error);
+      toast({
+        title: "Erro ao baixar",
+        description: "Não foi possível baixar a imagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingShare(false);
     }
   };
 
@@ -168,6 +222,14 @@ const Favorites = () => {
           </div>
         )}
       </main>
+
+      <ShareFormatSelector
+        open={isFormatSelectorOpen}
+        onOpenChange={setIsFormatSelectorOpen}
+        onFormatSelect={handleShareWithFormat}
+        onDownload={handleDownloadWithFormat}
+        isGenerating={isGeneratingShare}
+      />
     </div>
   );
 };

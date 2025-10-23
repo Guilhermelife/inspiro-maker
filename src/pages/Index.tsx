@@ -19,7 +19,8 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useUserQuotes } from "@/hooks/useUserQuotes";
 import { useStreaks } from "@/hooks/useStreaks";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { generateQuoteImage } from "@/lib/imageGenerator";
+import { generateQuoteImage, ImageFormat } from "@/lib/imageGenerator";
+import { ShareFormatSelector } from "@/components/ShareFormatSelector";
 import { getRandomQuote, type Quote } from "@/lib/quotes";
 import AdBanner from "@/components/AdBanner";
 import { InstallPrompt } from "@/components/InstallPrompt";
@@ -59,6 +60,8 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [isFormatSelectorOpen, setIsFormatSelectorOpen] = useState(false);
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
 
   // Load initial quote
   useEffect(() => {
@@ -170,14 +173,18 @@ const Index = () => {
     }
   };
 
-  const handleShare = async () => {
+  const handleShareWithFormat = async (format: ImageFormat) => {
     if (!currentQuote) return;
+    
+    setIsFormatSelectorOpen(false);
+    setIsGeneratingShare(true);
     
     try {
       const imageUrl = await generateQuoteImage({
         text: currentQuote.text,
         author: currentQuote.author,
-        category,
+        category: currentQuote.category,
+        format,
       });
       
       // Increment share counter
@@ -233,7 +240,48 @@ const Index = () => {
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingShare(false);
     }
+  };
+
+  const handleDownloadWithFormat = async (format: ImageFormat) => {
+    if (!currentQuote) return;
+    
+    setIsFormatSelectorOpen(false);
+    setIsGeneratingShare(true);
+
+    try {
+      const imageDataUrl = await generateQuoteImage({
+        text: currentQuote.text,
+        author: currentQuote.author,
+        category: currentQuote.category,
+        format,
+      });
+
+      const link = document.createElement('a');
+      link.download = `frase-${format}-${Date.now()}.png`;
+      link.href = imageDataUrl;
+      link.click();
+
+      toast({
+        title: "Download iniciado!",
+        description: "A imagem foi baixada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error downloading:', error);
+      toast({
+        title: "Erro ao baixar",
+        description: "Não foi possível baixar a imagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingShare(false);
+    }
+  };
+
+  const handleShare = () => {
+    setIsFormatSelectorOpen(true);
   };
 
   const handleCreateQuote = async (text: string, author: string, photoUrl?: string) => {
@@ -433,6 +481,14 @@ const Index = () => {
       {/* PWA Components */}
       <InstallPrompt />
       <UpdatePrompt />
+      
+      <ShareFormatSelector
+        open={isFormatSelectorOpen}
+        onOpenChange={setIsFormatSelectorOpen}
+        onFormatSelect={handleShareWithFormat}
+        onDownload={handleDownloadWithFormat}
+        isGenerating={isGeneratingShare}
+      />
     </div>
   );
 };
